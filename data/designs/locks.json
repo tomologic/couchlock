@@ -1,0 +1,14 @@
+{
+  "_id": "_design/locks",
+  "language": "javascript",
+  "views": {
+    "queue": {
+      "map": "function(doc) { if (doc.Type == 'lock' && (['queue', 'locked'].indexOf(doc.Status) != -1)) { emit([doc.Lock, doc.Created], doc); }}"
+    }
+  },
+  "updates": {
+    "create": "function (doc, req) { var b = JSON.parse(req.body); var doc = {_id: req.uuid, Type: 'lock', Lock: b['Lock'], Name: b['Name'], Status: 'queue', Created: (new Date().getTime())}; return [doc, toJSON({ok: true, id: doc._id})]; }",
+    "lock": "function (doc, req) { doc.Status = 'locked'; return [doc, toJSON({ok: true})]; }",
+    "unlock": "function (doc, req) { doc.Status = 'unlocked'; return [doc, toJSON({ok: true})]; }"
+  }
+}
