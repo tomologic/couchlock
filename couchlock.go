@@ -58,8 +58,8 @@ func main() {
 		fmt.Printf("\n")
 
 		fmt.Printf("Commands:\n")
-		fmt.Printf("\tlock\tAquire lock\n")
-		fmt.Printf("\tunlock\tUnlock lock\n")
+		fmt.Printf("\tlock\t\tAquire lock\n")
+		fmt.Printf("\tunlock\t\tUnlock lock\n")
 		fmt.Printf("\tlist-queue\tList queue for lock\n\n")
 
 	}
@@ -70,21 +70,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	if config.name == "" {
+	command := flag.Args()[0]
+	if config.name == "" && (command == "lock" || command == "unlock") {
 		fmt.Println("ERROR: Unique 'name' identifier for lock session required.")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	command := flag.Args()[0]
+	verifyDesignUpdate()
+
 	if command == "lock" {
-		verifyDesignUpdate()
 		lock := createLock()
 		waitForLock(lock)
 		lockLock(lock)
 	} else if command == "unlock" {
-		fmt.Println("INFO: Not implemented.")
-		os.Exit(1)
+		unlockLock()
 	} else if command == "list-queue" {
 		listQueue()
 	} else {
@@ -185,6 +185,51 @@ func lockLock(lock *Lock) {
 		os.Exit(1)
 	}
 	fmt.Printf("INFO: Lock '%s' aquired.\n", config.lock)
+}
+
+func unlockLock() {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", config.couchdb+"/_design/locks/_view/queue/?startkey=[\""+config.lock+"\"]&endkey=[\""+config.lock+"\",{}]", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	// wait until our lock is top of list
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+
+	var queue Queue
+	err = json.Unmarshal(buf.Bytes(), &queue)
+	if err != nil {
+		panic(err)
+	}
+
+	// Get first lock in list
+	lock := queue.Rows[0].Lock
+	if lock.Name != config.name {
+		fmt.Printf("ERROR: Could not unlock '%s' since it's owned by '%s'.\n",
+			config.lock,
+			queue.Rows[0].Lock.Name)
+		os.Exit(1)
+	}
+
+	req, err = http.NewRequest("POST", config.couchdb+"/_design/locks/_update/unlock/"+lock.Id, nil)
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	if resp.StatusCode != 201 {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(resp.Body)
+		fmt.Printf("ERROR: %d %s\n", resp.StatusCode, buf.String())
+		os.Exit(1)
+	}
+	fmt.Printf("INFO: Lock '%s' unlocked.\n", config.lock)
 }
 
 func waitForLock(lock *Lock) bool {
