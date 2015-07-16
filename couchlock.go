@@ -28,7 +28,7 @@ type Lock struct {
 	Lock    string `json:"Lock"`
 	Name    string `json:"Name"`
 	Status  string `json:"Status,omitempty"`
-	Created int    `json:"Created,omitempty"`
+	Created uint64 `json:"Created,omitempty"`
 }
 
 func NewLock(lock string, name string) *Lock {
