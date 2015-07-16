@@ -60,7 +60,7 @@ func main() {
 		fmt.Printf("Commands:\n")
 		fmt.Printf("\tlock\tAquire lock\n")
 		fmt.Printf("\tunlock\tUnlock lock\n")
-		fmt.Printf("\tqueue\tList queue for lock\n\n")
+		fmt.Printf("\tlist-queue\tList queue for lock\n\n")
 
 	}
 
@@ -85,9 +85,8 @@ func main() {
 	} else if command == "unlock" {
 		fmt.Println("INFO: Not implemented.")
 		os.Exit(1)
-	} else if command == "queue" {
-		fmt.Println("INFO: Not implemented.")
-		os.Exit(1)
+	} else if command == "list-queue" {
+		listQueue()
 	} else {
 		fmt.Printf("ERROR: Unknown command '%s'.\n", command)
 		flag.Usage()
@@ -221,4 +220,33 @@ func waitForLock(lock *Lock) bool {
 	}
 
 	return false
+}
+
+func listQueue() {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", config.couchdb+"/_design/locks/_view/queue/?startkey=[\""+config.lock+"\"]&endkey=[\""+config.lock+"\",{}]", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+
+	var queue Queue
+	err = json.Unmarshal(buf.Bytes(), &queue)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, row := range queue.Rows {
+		fmt.Printf("%d %s %s\n",
+			row.Lock.Created,
+			row.Lock.Name,
+			row.Lock.Status)
+	}
 }
