@@ -1,5 +1,7 @@
 # Couchlock
 
+[![](https://badge.imagelayers.io/tomologic/couchlock:latest.svg)](https://imagelayers.io/?images=tomologic/couchlock:latest 'Get your own badge on imagelayers.io')
+
 Couchlock those running pipelines!
 
 ## What is this?
