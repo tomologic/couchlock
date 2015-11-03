@@ -1,0 +1,40 @@
+sudo: required
+services:
+- docker
+language: go
+branches:
+  only:
+  - master
+go:
+- '1.5'
+env:
+  global:
+  - GH_REF: github.com/tomologic/couchlock.git
+  - secure: S2joiB8plRG5hl+G4wq/WxvW8GHV3/bpQK1yl3xUjo+03gCCMeT0BFDhNkhuLK4BwbFTAPtfdhpZ/g3ytf/ucn0r+74Sa43iKco2Avb8ti7LLnGaeNWtkoFGVhXpYWNc7JX2KEWWH48R1SujPCVUFbrUIwFZvfuYawbqI04UGscse1dQKAJM23wXrbeVOnPUi67RKZu2YIMxX6LQr3Ay/RfcDlGsiVpRBNPzjlt5/jEnzbkIL50I5iw+UBGsN7Dt92GSGWSbFMJYmBYu1xsZF6OL5un7ZG1XIq6PePvS6b2hvsJOhf/x64A6R1OO/77PwM0mFrX2lQGHjCv9Ohzpj2VvLtFdRT3BGiYONxvv2BEF/NxcLT4HMCTDLNIBUZz3lGTvmJAFFXti5csF+PLT4V++OQcmUrKeSDaDNiW5a4Gm5eL+1GHiaoJdItgPA4dJsROLhZm0QTW746TsdTcROgzVYQKZtVwMmTtaEhXU46/1PTy7NbC/5+TUXvFtRx3zXckmT+cKFLpXxZvmTLsXgZ3eszTnOXWzyKOXz+UhuvYIj/P/b03zuHFz23HNxlaClLNJ7veGL+3SguDZ0E5XHZy+7/CxMwL0hU1VQmM/0b975iGqFywLQVsCU4rF2j/vP1WuuxFVPcOJ9GfCJXc4xHxTENL8qSyfnYgY4hg0If4=
+install:
+- git clone https://github.com/Homebrew/linuxbrew.git ~/.linuxbrew
+- export PATH="$HOME/.linuxbrew/bin:$PATH"
+- brew install tomologic/tap/travis-ci-bumpminor-sh
+- gem install fpm --no-ri --no-rdoc
+- sudo apt-get update -qq
+- sudo apt-get install -qq -y rpm
+- go get -t ./...
+script:
+- go test ./... -v
+- go vet ./...
+before_deploy: |
+  # Bump version
+  travis-ci-bumpminor.sh
+
+  # Build
+  make build
+  make package
+deploy:
+  provider: releases
+  api_key:
+    secure: XtTf2lhuXhw45Ih1vpjJP8wx1fuOdO2fNTZMiLDBV4e3ZJZxmhYcsSNc1pzwU65Uk9AUES/oAXoa8SlWaOBFOrQR51L7uTu28E76aeU7YuokQ94WZ6HJu8zTHSIZS670uEqQlA1HDakwTPeWg9f+Mt1ks8yZFlqNN2ljwKFSoaKbePqcmib8xVTcx6haX7VAy6ZGUQQA6U1QftZ42BIr5IslFEc6DiGmiwrVpU3TTWqmbgKU1yFzEDEDwmmCDKx8mbdo4rB055qQn610BkaWQkWbe0rImcqv9Q9xQ92DE6DXQR5H2p7EaQFUlyyoSM4A38m1adLt5Kyz81IQu6d5kPWznJ6xX+lh+pZZrpUAj+iz4UNjVbOZ3HDJOZhOBzxXUlfuA56qpmH3BWMabrZBIoxyGboBqz6b7uB8Eyjw1F1zoSO6TXkJI8tJwbPpe8992Ys9D21J5cqi25mYtfMzlBx6Tn6cHkoTgtPYo6qqTM1koAyuVLDjp20BTQrHqpvEpxtzZ9rGqoU1TJjp8isGRRA6ARUM4Hdgzd2FlcWKhFfiAxzuEfPleRJunosOX8ZYhWVGArLraYhO4HsPmBHcPVokEZdpQGl4cC5YzjoheCgGrZgcoh19HK2VaY/Xp8Us++fhDFSJtwhT+HM9QxFspGs/mo4P6MxHzkI00k4iQEA=
+  file: ARTIFACTS/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: tomologic/couchlock
