@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+var VERSION = "0.0.0"
+
 type Response struct {
 	Ok bool   `json:"ok"`
 	Id string `json:"id"`
@@ -60,7 +62,8 @@ func main() {
 		fmt.Printf("Commands:\n")
 		fmt.Printf("\tlock\t\tAquire lock\n")
 		fmt.Printf("\tunlock\t\tUnlock lock\n")
-		fmt.Printf("\tlist-queue\tList queue for lock\n\n")
+		fmt.Printf("\tlist-queue\tList queue for lock\n")
+		fmt.Printf("\tversion\t\tPrint current version\n\n")
 
 	}
 
@@ -71,6 +74,12 @@ func main() {
 	}
 
 	command := flag.Args()[0]
+
+	if command == "version" {
+		fmt.Println(VERSION)
+		os.Exit(0)
+	}
+
 	if config.name == "" && (command == "lock" || command == "unlock") {
 		fmt.Println("ERROR: Unique 'name' identifier for lock session required.")
 		flag.Usage()
