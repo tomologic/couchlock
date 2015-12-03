@@ -15,6 +15,7 @@ install:
 - git clone https://github.com/Homebrew/linuxbrew.git ~/.linuxbrew
 - export PATH="$HOME/.linuxbrew/bin:$PATH"
 - brew install tomologic/tap/travis-ci-bumpminor-sh
+- brew install bats
 - gem install fpm --no-ri --no-rdoc
 - sudo apt-get update -qq
 - sudo apt-get install -qq -y rpm
@@ -22,6 +23,7 @@ install:
 script:
 - go test ./... -v
 - go vet ./...
+- bats ./bats
 before_deploy: |
   # Bump version
   travis-ci-bumpminor.sh
