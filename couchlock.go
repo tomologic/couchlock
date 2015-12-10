@@ -266,8 +266,10 @@ func waitForLock(lock *Lock) bool {
 			panic(err)
 		}
 
-		if queue.Rows[0].Lock.Id == lock.Id {
-			return true
+		if len(queue.Rows) > 0 {
+			if queue.Rows[0].Lock.Id == lock.Id {
+				return true
+			}
 		}
 
 		time.Sleep(time.Duration(config.interval) * 1000 * time.Millisecond)
