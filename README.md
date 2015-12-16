@@ -32,6 +32,42 @@ docker run -it --rm tomologic/couchlock \
     unlock
 ```
 
+Couchlock is provided through our [homebrew tap](https://github.com/tomologic/homebrew-tap) for OSX and linux users.
+
+```
+brew install tomologic/tap/couchlock
+```
+
+## Build
+
+[Travis CI Gimme](https://github.com/travis-ci/gimme) is used to cross-compile couchlock.
+
+```
+$ brew install gimme
+```
+
+```
+$ make build
+$ make build_darwin
+$ make build_linux
+```
+
+## Package
+
+[Effing Package Management - fpm](https://github.com/jordansissel/fpm) is used for packaging.
+
+```
+$ brew install gnu-tar
+$ brew install rpm
+$ gem install fpm
+```
+
+```
+$ make package
+$ make package_deb
+$ make package_rpm
+```
+
 ## CouchDB
 
 If you don't have couchdb internally then totally try this out with [Cloudant](https://cloudant.com/) which has a great free tier.
