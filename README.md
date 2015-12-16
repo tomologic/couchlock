@@ -1,5 +1,7 @@
 # Couchlock
 
+
+[![Travis](https://img.shields.io/travis/tomologic/couchlock.svg?style=flat-square)](https://travis-ci.org/tomologic/couchlock)
 [![](https://badge.imagelayers.io/tomologic/couchlock:latest.svg)](https://imagelayers.io/?images=tomologic/couchlock:latest 'Get your own badge on imagelayers.io')
 
 Couchlock those running pipelines!
