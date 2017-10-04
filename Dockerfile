@@ -1,21 +1,11 @@
-FROM debian:jessie
+FROM golang:1.9-alpine as builder
+WORKDIR /go/src/couchlock
+RUN apk --no-cache add git
+COPY *.go ./
+RUN go build -v
 
-ADD . /usr/src/app
-WORKDIR /usr/src/app
+FROM alpine:3.6
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /go/src/couchlock/couchlock /usr/bin/
 
-RUN set -x; buildDeps="curl golang make git"; \
-    # Install runtime and build dependencies
-    apt-get update && \
-    apt-get install -y ca-certificates $buildDeps && \
-    # Install travis-ci gimme
-    curl -sL -o /usr/local/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme && \
-    chmod +x /usr/local/bin/gimme && \
-    # Build binary
-    make build_linux && \
-    ln -s $PWD/ARTIFACTS/couchlock-*-linux-amd64 /usr/local/bin/couchlock && \
-    # Cleanup
-    apt-get purge -y $buildDeps && \
-    apt-get autoremove -y --purge && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-ENTRYPOINT ["/usr/local/bin/couchlock"]
+ENTRYPOINT ["couchlock"]
