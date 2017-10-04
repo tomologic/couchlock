@@ -218,6 +218,11 @@ func unlockLock() {
 		panic(err)
 	}
 
+	if len(queue.Rows) == 0 {
+		fmt.Printf("INFO: Lock '%s' is not locked. Doing nothing.\n", config.lock)
+		os.Exit(0)
+	}
+
 	// Get first lock in list
 	lock := queue.Rows[0].Lock
 	if lock.Name != config.name {
