@@ -18,8 +18,8 @@ type Response struct {
 }
 
 type Queue struct {
-	Total_rows int        `json:"total_rows,omitempty"`
-	Rows       []QueueRow `json:"rows,omitempty"`
+	TotalRows int        `json:"total_rows,omitempty"`
+	Rows      []QueueRow `json:"rows,omitempty"`
 }
 type QueueRow struct {
 	Lock Lock `json:"value,omitempty"`
@@ -105,9 +105,9 @@ func main() {
 
 func verifyDesignUpdate() {
 	client := &http.Client{}
-	design_locks_url := config.couchdb + "/_design/locks"
+	designLocksUrl := config.couchdb + "/_design/locks"
 
-	resp, err := http.Get(design_locks_url)
+	resp, err := http.Get(designLocksUrl)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
@@ -116,14 +116,14 @@ func verifyDesignUpdate() {
 		// View document probably doesn't exist
 
 		// Get design document
-		design_document, err := Asset("data/designs/locks.json")
+		designDocument, err := Asset("data/designs/locks.json")
 		if err != nil {
 			panic(err)
 		}
 
 		// Create design document in couchdb
-		buf := bytes.NewBuffer(design_document)
-		req, err := http.NewRequest("PUT", design_locks_url, buf)
+		buf := bytes.NewBuffer(designDocument)
+		req, err := http.NewRequest("PUT", designLocksUrl, buf)
 		resp, err := client.Do(req)
 		if err != nil {
 			panic(err)
