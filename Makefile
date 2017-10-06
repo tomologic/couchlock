@@ -58,3 +58,11 @@ package_rpm:
 ###############################################################################
 clean:
 	rm -rf ./ARTIFACTS
+
+###############################################################################
+## Test using bats
+##
+## bats and docker need to be installed and go binary path must be in your PATH
+###############################################################################
+test:
+	go build && go install && bats ./bats

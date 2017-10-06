@@ -10,41 +10,38 @@ import (
 	"time"
 )
 
-var VERSION = "0.0.0"
+// Version to return in "couchlock version" command
+var Version = "0.0.0"
 
-type Response struct {
+type response struct {
 	Ok bool   `json:"ok"`
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
-type Queue struct {
+type queue struct {
 	TotalRows int        `json:"total_rows,omitempty"`
-	Rows      []QueueRow `json:"rows,omitempty"`
+	Rows      []queueRow `json:"rows,omitempty"`
 }
-type QueueRow struct {
-	Lock Lock `json:"value,omitempty"`
+type queueRow struct {
+	Lock lock `json:"value,omitempty"`
 }
 
-type Lock struct {
-	Id      string `json:"_id,omitempty"`
+type lock struct {
+	ID      string `json:"_id,omitempty"`
 	Lock    string `json:"Lock"`
 	Name    string `json:"Name"`
 	Status  string `json:"Status,omitempty"`
 	Created uint64 `json:"Created,omitempty"`
 }
 
-func NewLock(lock string, name string) *Lock {
-	return &Lock{Lock: lock, Name: name}
-}
-
-type Config struct {
+type couchLockConfig struct {
 	lock     string
 	name     string
 	couchdb  string
 	interval int
 }
 
-var config Config
+var config couchLockConfig
 
 func main() {
 	flag.StringVar(&config.lock, "lock", "default", "Lock name - default to 'default'.")
@@ -76,7 +73,7 @@ func main() {
 	command := flag.Args()[0]
 
 	if command == "version" {
-		fmt.Println(VERSION)
+		fmt.Println(Version)
 		os.Exit(0)
 	}
 
@@ -105,9 +102,9 @@ func main() {
 
 func verifyDesignUpdate() {
 	client := &http.Client{}
-	designLocksUrl := config.couchdb + "/_design/locks"
+	designLocksURL := config.couchdb + "/_design/locks"
 
-	resp, err := http.Get(designLocksUrl)
+	resp, err := http.Get(designLocksURL)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
@@ -123,7 +120,7 @@ func verifyDesignUpdate() {
 
 		// Create design document in couchdb
 		buf := bytes.NewBuffer(designDocument)
-		req, err := http.NewRequest("PUT", designLocksUrl, buf)
+		req, err := http.NewRequest("PUT", designLocksURL, buf)
 		resp, err := client.Do(req)
 		if err != nil {
 			panic(err)
@@ -140,11 +137,11 @@ func verifyDesignUpdate() {
 	}
 }
 
-func createLock() *Lock {
+func createLock() *lock {
 	client := &http.Client{}
 
 	// create lock
-	lock := NewLock(config.lock, config.name)
+	lock := &lock{Lock: config.lock, Name: config.name}
 
 	// create lock in couchdb
 	json1, _ := json.Marshal(lock)
@@ -161,28 +158,28 @@ func createLock() *Lock {
 		fmt.Printf("ERROR: %d %s\n", resp.StatusCode, buf.String())
 		os.Exit(1)
 	}
-	fmt.Printf("INFO: Lock '%s' created.\n", config.lock)
+	fmt.Printf("INFO: lock '%s' created.\n", config.lock)
 
 	buf = new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
-	var res Response
+	var res response
 	err = json.Unmarshal(buf.Bytes(), &res)
 	if err != nil {
 		panic(err)
 	}
 
 	// save id for couchdb lock document
-	lock.Id = res.Id
+	lock.ID = res.ID
 
 	return lock
 }
 
-func lockLock(lock *Lock) {
+func lockLock(lock *lock) {
 	client := &http.Client{}
 
 	// change status of lock in couchdb to 'locked'
-	req, err := http.NewRequest("POST", config.couchdb+"/_design/locks/_update/lock/"+lock.Id, nil)
+	req, err := http.NewRequest("POST", config.couchdb+"/_design/locks/_update/lock/"+lock.ID, nil)
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
@@ -212,7 +209,7 @@ func unlockLock() {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
-	var queue Queue
+	var queue queue
 	err = json.Unmarshal(buf.Bytes(), &queue)
 	if err != nil {
 		panic(err)
@@ -232,7 +229,7 @@ func unlockLock() {
 		os.Exit(1)
 	}
 
-	req, err = http.NewRequest("POST", config.couchdb+"/_design/locks/_update/unlock/"+lock.Id, nil)
+	req, err = http.NewRequest("POST", config.couchdb+"/_design/locks/_update/unlock/"+lock.ID, nil)
 	resp, err = client.Do(req)
 	if err != nil {
 		panic(err)
@@ -246,7 +243,7 @@ func unlockLock() {
 	fmt.Printf("INFO: Lock '%s' unlocked.\n", config.lock)
 }
 
-func waitForLock(lock *Lock) bool {
+func waitForLock(lock *lock) bool {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", config.couchdb+"/_design/locks/_view/queue/?startkey=[\""+config.lock+"\"]&endkey=[\""+config.lock+"\",{}]", nil)
 	if err != nil {
@@ -265,14 +262,14 @@ func waitForLock(lock *Lock) bool {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
 
-		var queue Queue
+		var queue queue
 		err = json.Unmarshal(buf.Bytes(), &queue)
 		if err != nil {
 			panic(err)
 		}
 
 		if len(queue.Rows) > 0 {
-			if queue.Rows[0].Lock.Id == lock.Id {
+			if queue.Rows[0].Lock.ID == lock.ID {
 				return true
 			}
 		}
@@ -298,7 +295,7 @@ func listQueue() {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(resp.Body)
 
-	var queue Queue
+	var queue queue
 	err = json.Unmarshal(buf.Bytes(), &queue)
 	if err != nil {
 		panic(err)
