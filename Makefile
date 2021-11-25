@@ -15,7 +15,7 @@ VERSION = $(shell git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*' | sed 's
 build: build_darwin build_linux
 
 compile = bash -c "env GOOS=$(1) GOARCH=$(2) go build -a \
-						-ldflags \"-w -X main.VERSION='$(VERSION)'\" \
+						-ldflags \"-w -X main.Version='$(VERSION)'\" \
 						-o $(BUILDDIR)/$(NAME)-$(VERSION)-$(1)-$(2)"
 
 build_darwin:
