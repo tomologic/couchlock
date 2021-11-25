@@ -57,7 +57,7 @@ func main() {
 		fmt.Printf("\n")
 
 		fmt.Printf("Commands:\n")
-		fmt.Printf("\tlock\t\tAquire lock\n")
+		fmt.Printf("\tlock\t\tAcquire lock\n")
 		fmt.Printf("\tunlock\t\tUnlock lock\n")
 		fmt.Printf("\tlist-queue\tList queue for lock\n")
 		fmt.Printf("\tversion\t\tPrint current version\n\n")
@@ -121,6 +121,9 @@ func verifyDesignUpdate() {
 		// Create design document in couchdb
 		buf := bytes.NewBuffer(designDocument)
 		req, err := http.NewRequest("PUT", designLocksURL, buf)
+		if err != nil {
+			panic(err)
+		}
 		resp, err := client.Do(req)
 		if err != nil {
 			panic(err)
@@ -147,6 +150,9 @@ func createLock() *lock {
 	json1, _ := json.Marshal(lock)
 	buf := bytes.NewBuffer(json1)
 	req, err := http.NewRequest("POST", config.couchdb+"/_design/locks/_update/create/", buf)
+	if err != nil {
+		panic(err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -180,6 +186,9 @@ func lockLock(lock *lock) {
 
 	// change status of lock in couchdb to 'locked'
 	req, err := http.NewRequest("POST", config.couchdb+"/_design/locks/_update/lock/"+lock.ID, nil)
+	if err != nil {
+		panic(err)
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
@@ -190,7 +199,7 @@ func lockLock(lock *lock) {
 		fmt.Printf("ERROR: %d %s\n", resp.StatusCode, buf.String())
 		os.Exit(1)
 	}
-	fmt.Printf("INFO: Lock '%s' aquired.\n", config.lock)
+	fmt.Printf("INFO: Lock '%s' acquired.\n", config.lock)
 }
 
 func unlockLock() {
@@ -230,6 +239,9 @@ func unlockLock() {
 	}
 
 	req, err = http.NewRequest("POST", config.couchdb+"/_design/locks/_update/unlock/"+lock.ID, nil)
+	if err != nil {
+		panic(err)
+	}
 	resp, err = client.Do(req)
 	if err != nil {
 		panic(err)
@@ -253,7 +265,7 @@ func waitForLock(lock *lock) bool {
 	fmt.Printf("INFO: Waiting for lock '%s' to be available.\n", config.lock)
 
 	// wait until our lock is top of list
-	for true {
+	for {
 		resp, err := client.Do(req)
 		if err != nil {
 			panic(err)
@@ -276,8 +288,6 @@ func waitForLock(lock *lock) bool {
 
 		time.Sleep(time.Duration(config.interval) * 1000 * time.Millisecond)
 	}
-
-	return false
 }
 
 func listQueue() {
