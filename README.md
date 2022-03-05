@@ -1,14 +1,10 @@
 # Couchlock
 
-
-[![Travis](https://img.shields.io/travis/tomologic/couchlock.svg?style=flat-square)](https://travis-ci.org/tomologic/couchlock)
-[![](https://badge.imagelayers.io/tomologic/couchlock:latest.svg)](https://imagelayers.io/?images=tomologic/couchlock:latest 'Get your own badge on imagelayers.io')
-
 Couchlock those running pipelines!
 
 ## What is this?
 
-This is currently the way we are trying to get global locks into our CD pipelines. Historically tried different Jenkins plugins for mutexes/semaphores and hacks by using jobs as locks. 
+This is currently the way we are trying to get global locks into our CD pipelines. Historically tried different Jenkins plugins for mutexes/semaphores and hacks by using jobs as locks.
 
 Lock that shared resource!
 
@@ -40,34 +36,20 @@ Couchlock is provided through our [homebrew tap](https://github.com/tomologic/ho
 brew install tomologic/tap/couchlock
 ```
 
-## Build
+## Build & package
 
-[Travis CI Gimme](https://github.com/travis-ci/gimme) is used to cross-compile couchlock.
-
-```
-$ brew install gimme
-```
+[GoReleaser](https://goreleaser.com/intro/) is used to build and package this
+application.
 
 ```
-$ make build
-$ make build_darwin
-$ make build_linux
-```
+# Install
+brew install goreleaser/tap/goreleaser
 
-## Package
+# Local-only release
+goreleaser release --snapshot --rm-dist
 
-[Effing Package Management - fpm](https://github.com/jordansissel/fpm) is used for packaging.
-
-```
-$ brew install gnu-tar
-$ brew install rpm
-$ gem install fpm
-```
-
-```
-$ make package
-$ make package_deb
-$ make package_rpm
+# Build for local testing
+goreleaser build --single-target
 ```
 
 ## CouchDB
