@@ -13,6 +13,7 @@ builds:
 dockers:
   - image_templates:
       - "tomologic/couchlock:{{ .Version }}"
+      - "tomologic/couchlock:latest"
     dockerfile: Dockerfile
     build_flag_templates:
       - --label=org.opencontainers.image.created={{.Date}}
