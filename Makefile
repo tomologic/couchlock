@@ -6,9 +6,6 @@ VERSION = $(shell git describe --tags --match 'v[0-9]*\.[0-9]*\.[0-9]*' | sed 's
 
 ###############################################################################
 ## Building
-##
-## Travis CI Gimme is used to cross-compile
-## https://github.com/travis-ci/gimme
 ###############################################################################
 
 .PHONY: build build_darwin build_linux
@@ -23,32 +20,6 @@ build_darwin:
 
 build_linux:
 	$(call compile,linux,amd64)
-
-
-###############################################################################
-## Packaging
-##
-## Effing Package Management - fpm is used for packaging
-## https://github.com/jordansissel/fpm
-## gnu-tar, rpmbuild is required
-###############################################################################
-
-.PHONY: package package_deb package_rpm
-package: package_deb package_rpm
-
-package = fpm -t $(1) \
-			-n $(NAME) \
-			--force \
-			--version $(VERSION) \
-			--rpm-os linux \
-			--package $(BUILDDIR) \
-			-s dir $(BUILDDIR)/$(NAME)-$(VERSION)-linux-amd64=/usr/local/bin/$(NAME)
-
-package_deb:
-	$(call package,deb)
-
-package_rpm:
-	$(call package,rpm)
 
 
 ###############################################################################
